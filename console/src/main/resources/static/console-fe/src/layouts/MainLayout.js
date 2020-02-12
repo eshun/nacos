@@ -19,7 +19,6 @@ import Header from './Header';
 import $ from 'jquery';
 import { connect } from 'react-redux';
 import { setParams } from '../globalLib';
-import { getState } from '../reducers/base';
 import _menu from '../menu';
 
 import './index.scss';
@@ -27,7 +26,7 @@ import './index.scss';
 @withRouter
 @connect(
   state => ({ ...state.locale, ...state.base }),
-  { getState }
+  { }
 )
 @ConfigProvider.config
 class MainLayout extends React.Component {
@@ -40,7 +39,6 @@ class MainLayout extends React.Component {
     children: PropTypes.any,
     version: PropTypes.any,
     functionMode: PropTypes.any,
-    getState: PropTypes.func,
   };
 
   constructor(props) {
@@ -57,7 +55,6 @@ class MainLayout extends React.Component {
   }
 
   componentDidMount() {
-    this.props.getState();
     this.refreshNav();
   }
 
@@ -269,7 +266,7 @@ class MainLayout extends React.Component {
               onClick={this.navTo.bind(this, `/${item.serviceName}`)}
             >
               <a
-                href="javascript:;"
+                href="javascript:void(0);"
                 id={`${item.serviceName}`}
                 onClick={this.activeNav.bind(this, `nav${index}`)}
               >
@@ -288,7 +285,7 @@ class MainLayout extends React.Component {
           onClick={this.navTo.bind(this, `/${item.serviceName}`)}
         >
           <a
-            href={'javascript:;'}
+            href={'javascript:void(0);'}
             id={`${item.serviceName}`}
             onClick={this.activeNav.bind(this, `nav${index}`)}
           >

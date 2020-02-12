@@ -15,12 +15,13 @@ import request from '../utils/request';
 import { GET_STATE } from '../constants';
 
 const initialState = {
+  security: true,
   version: null,
   standaloneMode: '',
   functionMode: '',
 };
 
-const getState = () => dispatch =>
+const getState = (callback) => dispatch =>
   request
     .get('v1/console/server/state')
     .then(res => {
@@ -32,6 +33,7 @@ const getState = () => dispatch =>
           functionMode: res.function_mode,
         },
       });
+      callback && callback.success && callback.success();
     })
     .catch(() => {
       dispatch({
@@ -41,6 +43,7 @@ const getState = () => dispatch =>
           functionMode: null,
         },
       });
+      callback && callback.fail && callback.fail();
     });
 
 export default (state = initialState, action) => {

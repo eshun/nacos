@@ -45,9 +45,12 @@ import ServiceDetail from './pages/ServiceManagement/ServiceDetail';
 import SubscriberList from './pages/ServiceManagement/SubscriberList';
 import ClusterNodeList from './pages/ClusterManagement/ClusterNodeList';
 import Welcome from './pages/Welcome/Welcome';
+import Graph from './pages/Graph';
 
 import reducers from './reducers';
+import { changeLoading } from './reducers/loading';
 import { changeLanguage } from './reducers/locale';
+import { getState } from './reducers/base';
 
 import './index.scss';
 import PropTypes from 'prop-types';
@@ -89,16 +92,20 @@ const MENU = [
   { path: '/serviceDetail', component: ServiceDetail },
   { path: '/subscriberList', component: SubscriberList },
   { path: '/clusterManagement', component: ClusterNodeList },
+  { path: '/graph', component: Graph },
 ];
 
 @connect(
-  state => ({ ...state.locale }),
-  { changeLanguage }
+  state => ({ ...state.locale, loading: state.loading.loading }),
+  { changeLanguage, changeLoading, getState }
 )
 class App extends React.Component {
   static propTypes = {
     locale: PropTypes.object,
+    loading: PropTypes.bool,
     changeLanguage: PropTypes.func,
+    changeLoading: PropTypes.func,
+    getState: PropTypes.func,
   };
 
   constructor(props) {
@@ -106,13 +113,29 @@ class App extends React.Component {
     this.state = {
       shownotice: 'none',
       noticecontent: '',
-      nacosLoading: {},
     };
   }
 
   componentDidMount() {
     const language = localStorage.getItem(LANGUAGE_KEY);
     this.props.changeLanguage(language);
+    this.props.getState();
+    if (this.props.loading) {
+      this.props.changeLoading(false);
+    }
+  }
+
+  componentWillUnmount() {
+    this.props.changeLoading(true);
+  }
+
+  requireAuth(item) {
+    const token = localStorage.getItem('token');
+    if (!token) { // 未登录
+      return <Redirect to="/login" />;
+    } else {
+      return <Route key={item.path} {...item} />;
+    }
   }
 
   get router() {
@@ -121,9 +144,7 @@ class App extends React.Component {
         <Switch>
           <Route path="/login" component={Login} />
           <Layout>
-            {MENU.map(item => (
-              <Route key={item.path} {...item} />
-            ))}
+            {MENU.map(item => this.requireAuth(item))}
           </Layout>
         </Switch>
       </HashRouter>
@@ -131,19 +152,23 @@ class App extends React.Component {
   }
 
   render() {
-    const { locale } = this.props;
-    return (
-      <Loading
-        className="nacos-loading"
-        shape="flower"
-        tip="loading..."
-        visible={false}
-        fullScreen
-        {...this.state.nacosLoading}
-      >
+    const { locale, loading } = this.props;
+
+    if (loading) {
+      return (
+        <Loading
+          className="nacos-loading"
+          shape="flower"
+          tip="loading..."
+          visible={loading}
+          fullScreen
+        />
+      );
+    } else {
+      return (
         <ConfigProvider locale={locale}>{this.router}</ConfigProvider>
-      </Loading>
-    );
+      );
+    }
   }
 }
 
